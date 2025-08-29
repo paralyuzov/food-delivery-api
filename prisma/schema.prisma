@@ -28,16 +28,19 @@ enum OrderStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  firstName String
-  lastName  String
-  phone     String?
-  role      UserRole @default(CUSTOMER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                           String    @id @default(cuid())
+  email                        String    @unique
+  password                     String
+  firstName                    String
+  lastName                     String
+  phone                        String?
+  isEmailVerified              Boolean   @default(false)
+  emailVerificationToken       String?
+  emailVerificationTokenExpiry DateTime?
+  role                         UserRole  @default(CUSTOMER)
+  isActive                     Boolean   @default(true)
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
 
   // Customer relations
   addresses         Address[]
@@ -83,9 +86,9 @@ model Restaurant {
 
   manager User @relation("RestaurantManager", fields: [managerId], references: [id])
 
-  menus    Menu[]
-  orders   Order[]
-  ratings  RestaurantRating[]
+  menus     Menu[]
+  orders    Order[]
+  ratings   RestaurantRating[]
   avgRating Float?
 
   @@map("restaurants")
@@ -141,7 +144,7 @@ model Order {
   updatedAt     DateTime    @updatedAt
 
   customer   User        @relation(fields: [customerId], references: [id])
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id])
   address    Address     @relation(fields: [addressId], references: [id])
   items      OrderItem[]
 
