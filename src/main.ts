@@ -19,7 +19,7 @@ async function bootstrap() {
     .setDescription('API documentation for the Food Delivery application')
     .setVersion('1.0')
     .addTag('auth', 'Authentication endpoints')
-    .addTag('restaurant', 'Restaurant management')
+    .addTag('restaurants', 'Restaurant management')
     .addTag('menu', 'Menu management')
     .addTag('dishes', 'Dishes management')
     .addTag('orders', 'Order management')
