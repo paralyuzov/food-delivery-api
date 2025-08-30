@@ -20,7 +20,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('auth', 'Authentication endpoints')
     .addTag('restaurants', 'Restaurant management')
-    .addTag('menu', 'Menu management')
+    .addTag('menus', 'Menu management')
     .addTag('dishes', 'Dishes management')
     .addTag('orders', 'Order management')
     .addTag('users', 'User management')
