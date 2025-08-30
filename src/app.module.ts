@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailModule } from './mail/mail.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
+import { MenusModule } from './menus/menus.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RestaurantModule } from './restaurant/restaurant.module';
     AuthModule,
     MailModule,
     RestaurantModule,
+    MenusModule,
   ],
   controllers: [AppController],
   providers: [AppService],
