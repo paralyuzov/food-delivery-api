@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MailModule } from './mail/mail.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { MenusModule } from './menus/menus.module';
+import { DishesModule } from './dishes/dishes.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { MenusModule } from './menus/menus.module';
     MailModule,
     RestaurantModule,
     MenusModule,
+    DishesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
