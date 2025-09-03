@@ -51,8 +51,8 @@ export class MenusController {
   @ApiOperation({ summary: 'Get menu by ID' })
   @ApiResponse({ status: 200, description: 'Menu retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Menu not found' })
-  async getMenu(@Param('id') id: string) {
-    return this.menusService.getOneMenu(id);
+  async getMenu(@Param('menuId') menuId: string) {
+    return this.menusService.getOneMenu(menuId);
   }
 
   @Put(':menuId')
