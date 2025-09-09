@@ -29,6 +29,9 @@ export class RestaurantService {
   async findOne(id: string) {
     return this.prisma.restaurant.findUnique({
       where: { id },
+      include: {
+        menus: { include: { dishes: true } },
+      },
     });
   }
 

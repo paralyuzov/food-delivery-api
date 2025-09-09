@@ -18,6 +18,11 @@ export class RegisterDto {
   @MinLength(6, { message: 'Password must be at least 6 characters long' })
   password: string;
 
+  @ApiProperty({ example: 'password123' })
+  @IsString()
+  @MinLength(6, { message: 'Password confirmation must be equal to password' })
+  confirmPassword: string;
+
   @ApiProperty({ example: 'John' })
   @IsString()
   @MinLength(1, { message: 'First name is required' })
@@ -33,8 +38,13 @@ export class RegisterDto {
   @IsString()
   phone?: string;
 
-  @ApiProperty({ enum: UserRole, default: UserRole.CUSTOMER })
-  @IsEnum(UserRole)
+  @ApiProperty({
+    enum: UserRole,
+    default: UserRole.CUSTOMER,
+    required: false,
+    description: 'User role - defaults to CUSTOMER if not provided',
+  })
   @IsOptional()
-  role?: UserRole = UserRole.CUSTOMER;
+  @IsEnum(UserRole, { message: 'Role must be either ADMIN or CUSTOMER' })
+  role?: UserRole;
 }

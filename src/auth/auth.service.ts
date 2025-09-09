@@ -12,6 +12,7 @@ import { MailService } from 'src/mail/mail.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ResendVerificationDto } from './dto/resendVerification.dto';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +39,12 @@ export class AuthService {
       throw new ConflictException('User with this email already exists');
     }
 
+    if (registerDto.password !== registerDto.confirmPassword) {
+      throw new BadRequestException(
+        'Password and confirm password do not match',
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(registerDto.password, 12);
     const emailVerificationToken = crypto.randomBytes(32).toString('hex');
     const emailVerificationTokenExpiry = new Date(
@@ -46,8 +53,12 @@ export class AuthService {
 
     const user = await this.prisma.user.create({
       data: {
-        ...registerDto,
+        email: registerDto.email,
         password: hashedPassword,
+        firstName: registerDto.firstName,
+        lastName: registerDto.lastName,
+        phone: registerDto.phone,
+        role: registerDto.role || UserRole.CUSTOMER,
         emailVerificationToken,
         emailVerificationTokenExpiry,
       },
