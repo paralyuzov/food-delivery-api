@@ -8,6 +8,9 @@ import { MailModule } from './mail/mail.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { MenusModule } from './menus/menus.module';
 import { DishesModule } from './dishes/dishes.module';
+import { StripeModule } from './stripe/stripe.module';
+import { OrdersModule } from './orders/orders.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { DishesModule } from './dishes/dishes.module';
     RestaurantModule,
     MenusModule,
     DishesModule,
+    StripeModule,
+    OrdersModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
