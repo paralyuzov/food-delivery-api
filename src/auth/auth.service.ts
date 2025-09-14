@@ -172,6 +172,8 @@ export class AuthService {
         isEmailVerified: true,
         isActive: true,
         password: true,
+        addresses: true,
+        orders: true,
       },
     });
 
@@ -206,8 +208,39 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
         isEmailVerified: user.isEmailVerified,
+        addresses: user.addresses,
+        orders: user.orders,
       },
       access_token,
     };
+  }
+
+  async getCurrentUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        role: true,
+        isEmailVerified: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        addresses: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('User account is deactivated');
+    }
+
+    return user;
   }
 }
