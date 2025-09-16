@@ -95,7 +95,7 @@ export class StripeService {
         line_items: lineItems,
         mode: 'payment',
         success_url: `${this.configService.get('FRONTEND_URL') || 'http://localhost:4200'}/order-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${this.configService.get('FRONTEND_URL') || 'http://localhost:4200'}/checkout?cancelled=true`,
+        cancel_url: `${this.configService.get('FRONTEND_URL') || 'http://localhost:4200'}`,
         metadata: {
           userId: metadata.userId,
           addressId: metadata.addressId,
