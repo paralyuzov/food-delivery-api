@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StripeService } from 'src/stripe/stripe.service';
 import { CreateOrderDto } from './dto/createOrder.dto';
@@ -12,11 +16,11 @@ export class OrdersService {
   ) {}
 
   async createOrderCheckout(createOrder: CreateOrderDto, userId: string) {
-    const { address, items } = createOrder;
+    const { addressId, items } = createOrder;
 
     const userAddress = await this.prisma.address.findFirst({
       where: {
-        id: address,
+        id: addressId,
         userId: userId,
       },
     });
@@ -41,6 +45,16 @@ export class OrdersService {
         },
       },
     });
+
+    const isDishesFromSameRestaurant = dishes.every(
+      (dish) => dish.menu.restaurantId === dishes[0].menu.restaurantId,
+    );
+
+    if (!isDishesFromSameRestaurant) {
+      throw new ConflictException(
+        'All order items must be from the same restaurant',
+      );
+    }
 
     if (dishes.length !== dishIds.length) {
       throw new NotFoundException('Some dishes are not available');
@@ -75,7 +89,7 @@ export class OrdersService {
       total,
       metadata: {
         userId,
-        addressId: address,
+        addressId: addressId,
         restaurantId,
         orderData: JSON.stringify({
           items: items.map((item) => ({
@@ -116,6 +130,14 @@ export class OrdersService {
 
     if (!session.metadata) {
       throw new NotFoundException('Session metadata not found');
+    }
+
+    const existingSessionId = await this.prisma.order.findUnique({
+      where: { session_id: sessionId },
+    });
+
+    if (existingSessionId) {
+      throw new ConflictException('Order already paid for this session');
     }
 
     const orderData = JSON.parse(session.metadata.orderData) as {
@@ -182,6 +204,7 @@ export class OrdersService {
           notes: orderData.notes || '',
           estimatedTime: 30,
           status: 'CONFIRMED',
+          session_id: sessionId,
         },
       });
 
