@@ -64,7 +64,7 @@ export class OrderItemDto {
 export class CreateOrderDto {
   @IsString()
   @IsNotEmpty()
-  address: string; // This matches your "address" field
+  addressId: string;
 
   @IsArray()
   @ValidateNested({ each: true })
