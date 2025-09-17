@@ -30,7 +30,14 @@ export class RestaurantService {
     return this.prisma.restaurant.findUnique({
       where: { id },
       include: {
-        menus: { include: { dishes: true } },
+        menus: {
+          include: {
+            dishes: {
+              include: { ratings: true },
+            },
+          },
+        },
+        ratings: true,
       },
     });
   }
@@ -45,6 +52,65 @@ export class RestaurantService {
   async deleteOne(id: string) {
     return this.prisma.restaurant.delete({
       where: { id },
+    });
+  }
+
+  async rateRestaurant(restaurantId: string, rating: number, userId: string) {
+    const restaurant = await this.prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+    });
+    if (!restaurant) {
+      throw new Error('Restaurant not found');
+    }
+
+    const existingRating = await this.prisma.restaurantRating.findFirst({
+      where: { restaurantId, userId },
+    });
+
+    if (existingRating) {
+      await this.prisma.restaurantRating.update({
+        where: { id: existingRating.id },
+        data: { rating },
+      });
+    } else {
+      await this.prisma.restaurantRating.create({
+        data: {
+          restaurantId,
+          rating,
+          userId,
+        },
+      });
+    }
+
+    await this.updateRestaurantAvgRating(restaurantId);
+
+    const action = existingRating ? 'updated' : 'created';
+
+    return {
+      message: `You ${action} your rating for ${restaurant.name} to ${rating} stars`,
+    };
+  }
+
+  private async updateRestaurantAvgRating(restaurantId: string): Promise<void> {
+    const ratings = await this.prisma.restaurantRating.findMany({
+      where: { restaurantId },
+      select: { rating: true },
+    });
+
+    if (ratings.length === 0) {
+      await this.prisma.restaurant.update({
+        where: { id: restaurantId },
+        data: { avgRating: null },
+      });
+      return;
+    }
+
+    const totalRating = ratings.reduce((sum, r) => sum + r.rating, 0);
+    const avgRating = parseFloat((totalRating / ratings.length).toFixed(2));
+
+    await this.prisma.restaurant.update({
+      where: { id: restaurantId },
+      data: { avgRating },
     });
   }
 }
