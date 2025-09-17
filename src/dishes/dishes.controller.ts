@@ -18,6 +18,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
+import { User } from '.prisma/client/default';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
 
 @ApiTags('dishes')
 @Controller('dishes')
@@ -75,5 +77,19 @@ export class DishesController {
   @ApiResponse({ status: 404, description: 'Dish not found' })
   async deleteDish(@Param('dishId') dishId: string) {
     return await this.dishesService.deleteDishById(dishId);
+  }
+
+  @Post(':dishId/rate')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Rate a dish (Authenticated users only)' })
+  @ApiResponse({ status: 200, description: 'Dish rated successfully' })
+  @ApiResponse({ status: 404, description: 'Dish not found' })
+  async rateDish(
+    @Param('dishId') dishId: string,
+    @Body() body: { rating: number },
+    @GetUser() user: User,
+  ) {
+    return await this.dishesService.rateDish(dishId, body.rating, user.id);
   }
 }
