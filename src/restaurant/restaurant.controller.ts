@@ -81,4 +81,22 @@ export class RestaurantController {
   delete(@Param('id') id: string) {
     return this.restaurantService.deleteOne(id);
   }
+
+  @Post(':id/rate')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Rate restaurant by ID' })
+  @ApiResponse({ status: 201, description: 'Restaurant rated successfully' })
+  @ApiResponse({ status: 404, description: 'Restaurant not found' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - User has already rated this restaurant',
+  })
+  rate(
+    @Param('id') id: string,
+    @Body('rating') rating: number,
+    @GetUser() user: User,
+  ) {
+    return this.restaurantService.rateRestaurant(id, rating, user.id);
+  }
 }
