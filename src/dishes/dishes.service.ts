@@ -122,4 +122,62 @@ export class DishesService {
       where: { id: dishId },
     });
   }
+
+  async rateDish(dishId: string, rating: number, userId: string) {
+    const dish = await this.prisma.dish.findUnique({
+      where: { id: dishId },
+    });
+    if (!dish) {
+      throw new NotFoundException('Dish not found');
+    }
+
+    const existingRating = await this.prisma.dishRating.findFirst({
+      where: { dishId, userId },
+    });
+
+    if (existingRating) {
+      await this.prisma.dishRating.update({
+        where: { id: existingRating.id },
+        data: { rating },
+      });
+    } else {
+      await this.prisma.dishRating.create({
+        data: {
+          dishId,
+          rating,
+          userId,
+        },
+      });
+    }
+
+    const action = existingRating ? 'updated' : 'added';
+
+    await this.updateDishAvgRating(dishId);
+
+    return {
+      message: `You ${action} your rating for ${dish.name} to ${rating} stars`,
+    };
+  }
+
+  private async updateDishAvgRating(dishId: string) {
+    const ratings = await this.prisma.dishRating.findMany({
+      where: { dishId },
+    });
+
+    if (ratings.length === 0) {
+      await this.prisma.dish.update({
+        where: { id: dishId },
+        data: { avgRating: null },
+      });
+      return;
+    }
+
+    const total = ratings.reduce((sum, r) => sum + r.rating, 0);
+    const avg = total / ratings.length;
+
+    await this.prisma.dish.update({
+      where: { id: dishId },
+      data: { avgRating: avg },
+    });
+  }
 }
