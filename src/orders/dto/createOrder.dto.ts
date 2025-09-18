@@ -8,6 +8,7 @@ import {
   IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { DishRating } from '@prisma/client';
 
 export class DishDto {
   @IsString()
@@ -42,6 +43,9 @@ export class DishDto {
 
   @IsOptional()
   updatedAt?: string;
+
+  @IsOptional()
+  ratings?: DishRating[];
 
   @IsOptional()
   avgRating?: number;

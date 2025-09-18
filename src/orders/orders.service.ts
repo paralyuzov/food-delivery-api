@@ -245,4 +245,34 @@ export class OrdersService {
       },
     };
   }
+
+  async getUserOrders(userId: string) {
+    const orders = await this.prisma.order.findMany({
+      where: { customerId: userId },
+      include: {
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+          },
+        },
+        items: {
+          select: {
+            id: true,
+            quantity: true,
+            price: true,
+            dish: {
+              select: {
+                id: true,
+                name: true,
+                imageUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return orders;
+  }
 }
