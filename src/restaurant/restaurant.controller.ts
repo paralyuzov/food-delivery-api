@@ -7,6 +7,7 @@ import {
   Param,
   Put,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -41,6 +42,16 @@ export class RestaurantController {
     @GetUser() user: User,
   ) {
     return this.restaurantService.create(createRestaurantDto, user.id);
+  }
+
+  @Get('popular')
+  @ApiOperation({ summary: 'Get most popular restaurants' })
+  @ApiResponse({
+    status: 200,
+    description: 'Popular restaurants retrieved successfully',
+  })
+  async getMostPopularRestaurants(@Query('limit') limit?: number) {
+    return await this.restaurantService.getMostPopularRestaurants(limit || 5);
   }
 
   @Get()

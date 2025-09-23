@@ -113,4 +113,14 @@ export class RestaurantService {
       data: { avgRating },
     });
   }
+
+  async getMostPopularRestaurants(limit: number) {
+    return this.prisma.restaurant.findMany({
+      where: {
+        avgRating: { not: null },
+      },
+      orderBy: { avgRating: 'desc' },
+      take: limit,
+    });
+  }
 }
