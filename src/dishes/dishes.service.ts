@@ -41,15 +41,17 @@ export class DishesService {
   }
 
   async getDishesByMenu(menuId: string) {
-    const existingDishes = await this.prisma.dish.findMany({
-      where: { menuId: menuId },
+    const menu = await this.prisma.menu.findUnique({
+      where: { id: menuId },
     });
 
-    if (!existingDishes || existingDishes.length === 0) {
-      throw new NotFoundException('Dishes not found');
+    if (!menu) {
+      throw new NotFoundException('Menu not found');
     }
 
-    return existingDishes;
+    return this.prisma.dish.findMany({
+      where: { menuId: menuId },
+    });
   }
 
   async getDishById(dishId: string) {
@@ -179,5 +181,42 @@ export class DishesService {
       where: { id: dishId },
       data: { avgRating: avg },
     });
+  }
+
+  async getMostPopularDishes(limit: number) {
+    return this.prisma.dish.findMany({
+      where: {
+        avgRating: {
+          not: null,
+        },
+      },
+      orderBy: {
+        avgRating: 'desc',
+      },
+      take: limit,
+    });
+  }
+
+  async getAllDDishesCategory() {
+    const categories = await this.prisma.dish.findMany({
+      select: {
+        category: true,
+      },
+      distinct: ['category'],
+    });
+    if (categories.length === 0) {
+      throw new NotFoundException('No categories found');
+    }
+    return categories.map((cat: { category: string | null }) => cat.category);
+  }
+
+  async getDishesByCategory(category: string) {
+    const dishes = await this.prisma.dish.findMany({
+      where: { category: category },
+    });
+    if (dishes.length === 0) {
+      throw new NotFoundException(`No dishes found in category: ${category}`);
+    }
+    return dishes;
   }
 }

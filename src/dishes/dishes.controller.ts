@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { DishesService } from './dishes.service';
@@ -25,6 +26,34 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 @Controller('dishes')
 export class DishesController {
   constructor(private readonly dishesService: DishesService) {}
+
+  @Get('categories')
+  @ApiOperation({ summary: 'Get all dish categories' })
+  @ApiResponse({ status: 200, description: 'List of all dish categories' })
+  async getAllDishCategories() {
+    return await this.dishesService.getAllDDishesCategory();
+  }
+
+  @Get('popular')
+  @ApiOperation({ summary: 'Get most popular dishes' })
+  @ApiResponse({
+    status: 200,
+    description: 'Popular dishes retrieved successfully',
+  })
+  async getMostPopularDishes(@Query('limit') limit?: number) {
+    return await this.dishesService.getMostPopularDishes(limit || 5);
+  }
+
+  @Get('categories/:category')
+  @ApiOperation({ summary: 'Get dishes by category' })
+  @ApiResponse({ status: 200, description: 'Dishes retrieved successfully' })
+  @ApiResponse({
+    status: 404,
+    description: 'No dishes found for this category',
+  })
+  async getDishesByCategory(@Param('category') category: string) {
+    return await this.dishesService.getDishesByCategory(category);
+  }
 
   @Post(':menuId')
   @UseGuards(JwtAuthGuard, AdminGuard)
