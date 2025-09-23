@@ -22,6 +22,13 @@ import { ApiTags } from '@nestjs/swagger';
 export class MenusController {
   constructor(private readonly menusService: MenusService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Get all menus' })
+  @ApiResponse({ status: 200, description: 'List of all menus' })
+  async getAllMenus() {
+    return this.menusService.getAllMenus();
+  }
+
   @Post('restaurant/:restaurantId')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth('JWT-auth')

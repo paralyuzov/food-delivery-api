@@ -77,4 +77,8 @@ export class MenusService {
       where: { id: menuId },
     });
   }
+
+  async getAllMenus() {
+    return this.prisma.menu.findMany();
+  }
 }
