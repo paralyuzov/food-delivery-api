@@ -255,6 +255,9 @@ export class OrdersService {
             id: true,
             name: true,
             imageUrl: true,
+            email: true,
+            phone: true,
+            address: true,
           },
         },
         items: {
@@ -271,6 +274,15 @@ export class OrdersService {
             },
           },
         },
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+          },
+        },
+        address: true,
       },
     });
     return orders;
