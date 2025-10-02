@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsPositive, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsPositive, IsString } from 'class-validator';
 
 export class CreateDishDto {
   @ApiProperty({ description: 'The name of the dish' })
@@ -18,4 +18,12 @@ export class CreateDishDto {
   @ApiProperty({ description: 'The image URL of the dish' })
   @IsString({ message: 'Image URL must be a string' })
   imageUrl: string;
+
+  @ApiProperty({ description: 'The category of the dish' })
+  @IsString({ message: 'Category must be a string' })
+  category: string;
+
+  @ApiProperty({ description: 'Is the dish available?' })
+  @IsBoolean({ message: 'isAvailable must be a boolean' })
+  isAvailable?: boolean;
 }
