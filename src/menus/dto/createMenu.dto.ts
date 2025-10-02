@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsBoolean, IsString } from 'class-validator';
 
 export class CreateMenuDto {
   @ApiProperty({ description: 'Name of the menu' })
@@ -9,4 +9,8 @@ export class CreateMenuDto {
   @ApiProperty({ description: 'Description of the menu' })
   @IsString({ message: 'Description must be a string' })
   description: string;
+
+  @ApiProperty({ description: 'Is the menu active?' })
+  @IsBoolean({ message: 'isActive must be a boolean' })
+  isActive?: boolean;
 }

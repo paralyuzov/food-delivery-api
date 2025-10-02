@@ -15,7 +15,7 @@ export class MenusService {
       throw new ConflictException('Restaurant does not exist');
     }
 
-    await this.prisma.menu.create({
+    return this.prisma.menu.create({
       data: {
         ...createMenuDto,
         restaurantId: restaurantId,
@@ -40,6 +40,13 @@ export class MenusService {
   async getOneMenu(menuId: string) {
     const existingMenu = await this.prisma.menu.findUnique({
       where: { id: menuId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isActive: true,
+        restaurantId: true,
+      },
     });
 
     if (!existingMenu) {
