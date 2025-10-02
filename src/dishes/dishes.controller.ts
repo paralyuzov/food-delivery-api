@@ -27,11 +27,11 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 export class DishesController {
   constructor(private readonly dishesService: DishesService) {}
 
-  @Get('categories')
-  @ApiOperation({ summary: 'Get all dish categories' })
-  @ApiResponse({ status: 200, description: 'List of all dish categories' })
-  async getAllDishCategories() {
-    return await this.dishesService.getAllDDishesCategory();
+  @Get()
+  @ApiOperation({ summary: 'Get all dishes' })
+  @ApiResponse({ status: 200, description: 'List of all dishes' })
+  async getAllDishes() {
+    return await this.dishesService.getAllDishes();
   }
 
   @Get('popular')
@@ -55,7 +55,15 @@ export class DishesController {
     return await this.dishesService.getDishesByCategory(category);
   }
 
-  @Post(':menuId')
+  @Get('dish/:dishId')
+  @ApiOperation({ summary: 'Get dish by ID' })
+  @ApiResponse({ status: 200, description: 'Dish retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Dish not found' })
+  async getDishById(@Param('dishId') dishId: string) {
+    return await this.dishesService.getDishById(dishId);
+  }
+
+  @Post('menu/:menuId')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new dish (Admin only)' })
@@ -68,7 +76,7 @@ export class DishesController {
     return await this.dishesService.createDish(menuId, createDishDto);
   }
 
-  @Get(':menuId')
+  @Get('menu/:menuId')
   @ApiOperation({ summary: 'Get all dishes by menu ID' })
   @ApiResponse({ status: 200, description: 'Dishes retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Dishes not found' })
@@ -76,15 +84,7 @@ export class DishesController {
     return await this.dishesService.getDishesByMenu(menuId);
   }
 
-  @Get(':dishId')
-  @ApiOperation({ summary: 'Get dish by ID' })
-  @ApiResponse({ status: 200, description: 'Dish retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Dish not found' })
-  async getDishById(@Param('dishId') dishId: string) {
-    return await this.dishesService.getDishById(dishId);
-  }
-
-  @Put(':menuId/:dishId')
+  @Put('menu/:menuId/dish/:dishId')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update a dish (Admin only)' })
@@ -98,7 +98,7 @@ export class DishesController {
     return await this.dishesService.updateDish(menuId, dishId, updateDishDto);
   }
 
-  @Delete(':dishId')
+  @Delete('dish/:dishId')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete a dish (Admin only)' })
@@ -108,7 +108,7 @@ export class DishesController {
     return await this.dishesService.deleteDishById(dishId);
   }
 
-  @Post(':dishId/rate')
+  @Post('dish/:dishId/rate')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Rate a dish (Authenticated users only)' })
