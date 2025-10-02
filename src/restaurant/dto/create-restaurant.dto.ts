@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsString, MinLength } from 'class-validator';
 
 export class CreateRestaurantDto {
   @ApiProperty({ description: 'The name of the restaurant' })
@@ -31,4 +31,8 @@ export class CreateRestaurantDto {
   @IsString()
   @MinLength(1, { message: 'Image URL is required' })
   imageUrl: string;
+
+  @ApiProperty({ description: 'Is the restaurant active?' })
+  @IsBoolean()
+  isActive?: boolean;
 }
