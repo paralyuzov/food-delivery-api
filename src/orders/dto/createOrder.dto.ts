@@ -49,6 +49,9 @@ export class DishDto {
 
   @IsOptional()
   avgRating?: number;
+
+  @IsOptional()
+  category?: string;
 }
 
 export class OrderItemDto {

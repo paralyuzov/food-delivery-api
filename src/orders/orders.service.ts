@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { StripeService } from 'src/stripe/stripe.service';
 import { CreateOrderDto } from './dto/createOrder.dto';
 import { Decimal } from '@prisma/client/runtime/library';
+import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -286,5 +287,53 @@ export class OrdersService {
       },
     });
     return orders;
+  }
+
+  async getOrdersByStatus(status?: OrderStatus) {
+    const where = status ? { status: status } : {};
+    const orders = await this.prisma.order.findMany({
+      where: where,
+      include: {
+        restaurant: {
+          select: {
+            name: true,
+            phone: true,
+          },
+        },
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+        address: {
+          select: {
+            street: true,
+            city: true,
+          },
+        },
+      },
+    });
+    return orders;
+  }
+
+  async updateOrderStatus(orderId: string, status: OrderStatus) {
+    const existingOrder = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!existingOrder) {
+      throw new NotFoundException('Order not found');
+    }
+
+    const updatedOrder = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: status },
+    });
+
+    return {
+      updatedOrder,
+    };
   }
 }
