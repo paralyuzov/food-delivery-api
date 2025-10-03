@@ -11,6 +11,7 @@ import { DishesModule } from './dishes/dishes.module';
 import { StripeModule } from './stripe/stripe.module';
 import { OrdersModule } from './orders/orders.module';
 import { UserModule } from './user/user.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UserModule } from './user/user.module';
     StripeModule,
     OrdersModule,
     UserModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
