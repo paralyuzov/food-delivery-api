@@ -174,6 +174,7 @@ export class AuthService {
         password: true,
         addresses: true,
         orders: true,
+        createdAt: true,
       },
     });
 
