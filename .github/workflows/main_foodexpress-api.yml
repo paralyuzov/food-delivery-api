@@ -16,24 +16,41 @@ jobs:
       # Checkout your repo
       - uses: actions/checkout@v4
 
-      # Set Node.js version
+      # Set Node.js version to match your project
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '18.x'
+          cache: 'npm'
 
       # Install dependencies and build NestJS backend
-      - name: Install dependencies and build
+      - name: Install dependencies
+        run: npm ci
+
+      # Generate Prisma client
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # Build the application
+      - name: Build application
+        run: npm run build
+
+      # Create deployment package
+      - name: Create deployment package
         run: |
-          npm install
-          npm run build
+          mkdir deploy
+          cp -r dist deploy/
+          cp -r node_modules deploy/
+          cp -r prisma deploy/
+          cp package*.json deploy/
+          cp -r .env.example deploy/ || true
 
       # Upload artifact to use in deploy job
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: nestjs-app
-          path: .
+          path: deploy
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,6 +58,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
       # Download built artifact
@@ -59,6 +79,7 @@ jobs:
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'foodexpress-api'
