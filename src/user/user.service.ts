@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAddressDto } from './dto/createAdress.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -20,6 +21,7 @@ export class UserService {
         isEmailVerified: true,
         addresses: true,
         orders: true,
+        createdAt: true,
       },
     });
 
@@ -70,5 +72,67 @@ export class UserService {
       where: { id: userId },
       data: updateData,
     });
+  }
+
+  async getAllUsers() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        role: true,
+        isEmailVerified: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async updateUserStatus(userId: string, isActive: boolean) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive },
+    });
+  }
+
+  async updateUserRole(userId: string, role: UserRole) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role },
+    });
+  }
+
+  async deleteUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return { message: 'User deleted successfully' };
   }
 }
