@@ -13,6 +13,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ResendVerificationDto } from './dto/resendVerification.dto';
 import { UserRole } from '@prisma/client';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -243,5 +244,45 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { password: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      user.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    if (
+      changePasswordDto.newPassword !== changePasswordDto.confirmNewPassword
+    ) {
+      throw new BadRequestException(
+        'New password and confirm password do not match',
+      );
+    }
+
+    const hashedNewPassword = await bcrypt.hash(
+      changePasswordDto.newPassword,
+      12,
+    );
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedNewPassword },
+    });
+
+    return { message: 'Password changed successfully' };
   }
 }

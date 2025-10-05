@@ -17,7 +17,10 @@ import {
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResendVerificationDto } from './dto/resendVerification.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GetUser } from './decorators/get-user.decorator';
+import { User } from '@prisma/client';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -79,5 +82,19 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getCurrentUser(@Request() req: { user: { id: string } }) {
     return await this.authService.getCurrentUser(req.user.id);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 400, description: 'Current password is incorrect' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async changePassword(
+    @GetUser() user: User,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return await this.authService.changePassword(user.id, changePasswordDto);
   }
 }
