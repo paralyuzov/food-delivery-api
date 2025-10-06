@@ -11,6 +11,7 @@ import * as crypto from 'crypto';
 import { MailService } from 'src/mail/mail.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { ResendVerificationDto } from './dto/resendVerification.dto';
 import { UserRole } from '@prisma/client';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -21,6 +22,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -195,12 +197,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = {
-      email: user.email,
-      sub: user.id,
-    };
-
-    const access_token = this.jwtService.sign(payload);
+    const tokens = await this.generateTokens(user.id, user.email);
 
     return {
       user: {
@@ -213,7 +210,7 @@ export class AuthService {
         addresses: user.addresses,
         orders: user.orders,
       },
-      access_token,
+      ...tokens,
     };
   }
 
@@ -284,5 +281,73 @@ export class AuthService {
     });
 
     return { message: 'Password changed successfully' };
+  }
+
+  async generateTokens(userId: string, email: string) {
+    const payload = {
+      email,
+      sub: userId,
+    };
+
+    const refreshTokenRecord = await this.createRefreshToken(userId);
+
+    const refreshPayload = {
+      ...payload,
+      tokenId: refreshTokenRecord.id,
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_EXPIRES_IN') || '1m',
+      }),
+      this.jwtService.signAsync(refreshPayload, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn:
+          this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',
+      }),
+    ]);
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
+  }
+
+  private async createRefreshToken(userId: string) {
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    return await this.prisma.refreshToken.create({
+      data: {
+        userId,
+        token: crypto.randomBytes(64).toString('hex'),
+        expiresAt,
+      },
+    });
+  }
+
+  async refreshTokensFromValidatedToken(userId: string) {
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId },
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return await this.generateTokens(userId, user.email);
+  }
+
+  async logout(userId: string) {
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId },
+    });
+
+    return { message: 'Logged out from all devices successfully' };
   }
 }
