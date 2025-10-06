@@ -19,8 +19,19 @@ import { LoginDto } from './dto/login.dto';
 import { ResendVerificationDto } from './dto/resendVerification.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshTokenGuard } from './guards/jwt-refresh-token.guard';
 import { GetUser } from './decorators/get-user.decorator';
 import { User } from '@prisma/client';
+
+interface RefreshTokenRequest {
+  user: {
+    user: {
+      id: string;
+      email: string;
+    };
+    tokenId: string;
+  };
+}
 
 @ApiTags('auth')
 @Controller('auth')
@@ -96,5 +107,40 @@ export class AuthController {
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     return await this.authService.changePassword(user.id, changePasswordDto);
+  }
+
+  @Post('refresh')
+  @UseGuards(JwtRefreshTokenGuard)
+  @ApiOperation({
+    summary: 'Refresh access token using x-refresh-token header',
+    description:
+      'No request body needed. Send refresh token in x-refresh-token header.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Tokens refreshed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        access_token: { type: 'string' },
+        refresh_token: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
+  async refreshTokens(@Request() req: RefreshTokenRequest) {
+    return await this.authService.refreshTokensFromValidatedToken(
+      req.user.user.id,
+    );
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Logout user (invalidate all refresh tokens)' })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid access token' })
+  async logout(@GetUser() user: User) {
+    return await this.authService.logout(user.id);
   }
 }
