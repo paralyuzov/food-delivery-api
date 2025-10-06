@@ -250,6 +250,7 @@ export class OrdersService {
   async getUserOrders(userId: string) {
     const orders = await this.prisma.order.findMany({
       where: { customerId: userId },
+      orderBy: { createdAt: 'desc' },
       include: {
         restaurant: {
           select: {
