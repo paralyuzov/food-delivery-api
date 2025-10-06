@@ -15,7 +15,7 @@ export class MailService {
     });
   }
   async sendVerificationEmail(to: string, name: string, token: string) {
-    const url = `http://localhost:4200/auth/verify-email?token=${token}`;
+    const url = `${this.configService.get('FRONTEND_URL')}/auth/verify-email?token=${token}`;
     await this.transporter.sendMail({
       from: this.configService.get('MAIL_USER'),
       to,
