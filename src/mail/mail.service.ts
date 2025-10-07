@@ -19,7 +19,7 @@ export class MailService {
     await this.transporter.sendMail({
       from: this.configService.get('MAIL_USER'),
       to,
-      subject: 'Verify Your Email - Food Delivery',
+      subject: 'Verify Your Email - FoodExpress',
       html: `
         <h1>Welcome ${name}!</h1>
         <p>Please click the link below to verify your email address:</p>
@@ -29,6 +29,25 @@ export class MailService {
         <p>Or copy and paste this link in your browser:</p>
         <p>${url}</p>
         <p>This link will expire in 24 hours.</p>
+      `,
+    });
+  }
+
+  async sendResetPasswordEmail(to: string, name: string, token: string) {
+    const url = `${this.configService.get('FRONTEND_URL')}/auth/reset-password?token=${token}`;
+    await this.transporter.sendMail({
+      from: this.configService.get('MAIL_USER'),
+      to,
+      subject: 'Reset Your Password - FoodExpress',
+      html: `
+        <h1>Hello ${name},</h1>
+        <p>You requested to reset your password. Please click the link below to proceed:</p>
+        <a href="${url}" style="padding: 10px 20px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px;">
+          Reset Password
+        </a>
+        <p>Or copy and paste this link in your browser:</p>
+        <p>${url}</p>
+        <p>This link will expire in 1 hour. If you did not request a password reset, please ignore this email.</p>
       `,
     });
   }
