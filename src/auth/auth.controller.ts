@@ -18,10 +18,12 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResendVerificationDto } from './dto/resendVerification.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshTokenGuard } from './guards/jwt-refresh-token.guard';
 import { GetUser } from './decorators/get-user.decorator';
 import { User } from '@prisma/client';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 interface RefreshTokenRequest {
   user: {
@@ -142,5 +144,31 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid access token' })
   async logout(@GetUser() user: User) {
     return await this.authService.logout(user.id);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset link' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset link sent successfully',
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return await this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using token' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired reset token' })
+  async resetPassword(
+    @Query('token') token: string,
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ) {
+    return await this.authService.resetPassword(
+      token,
+      resetPasswordDto.newPassword,
+      resetPasswordDto.confirmNewPassword,
+    );
   }
 }
