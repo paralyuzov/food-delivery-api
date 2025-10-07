@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAddressDto } from './dto/createAdress.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
@@ -127,6 +131,16 @@ export class UserService {
 
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    const hasOrders = await this.prisma.order.findFirst({
+      where: { customerId: userId },
+    });
+
+    if (hasOrders) {
+      throw new BadRequestException(
+        'Cannot delete user with existing orders! Optionally deactivate instead.',
+      );
     }
 
     await this.prisma.user.delete({
