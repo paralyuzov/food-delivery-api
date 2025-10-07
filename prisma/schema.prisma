@@ -37,6 +37,8 @@ model User {
   isEmailVerified              Boolean   @default(false)
   emailVerificationToken       String?
   emailVerificationTokenExpiry DateTime?
+  resetPasswordToken           String?
+  resetPasswordTokenExpiry     DateTime?
   role                         UserRole  @default(CUSTOMER)
   isActive                     Boolean   @default(true)
   createdAt                    DateTime  @default(now())
