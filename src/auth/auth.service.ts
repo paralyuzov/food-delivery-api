@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -349,5 +350,93 @@ export class AuthService {
     });
 
     return { message: 'Logged out from all devices successfully' };
+  }
+
+  async forgotPassword(email: string) {
+    console.log(email);
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User with this email does not exist');
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: resetToken,
+        resetPasswordTokenExpiry: resetTokenExpiry,
+      },
+    });
+
+    try {
+      await this.mailService.sendResetPasswordEmail(
+        user.email,
+        user.firstName,
+        resetToken,
+      );
+    } catch (error: unknown) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          resetPasswordToken: null,
+          resetPasswordTokenExpiry: null,
+        },
+      });
+
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Error sending reset password email: ' + error.message,
+        );
+      }
+
+      throw new InternalServerErrorException(
+        'Failed to send reset password email',
+      );
+    }
+
+    return { message: 'Password reset link sent to your email' };
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    confirmNewPassword: string,
+  ) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordTokenExpiry: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      throw new BadRequestException(
+        'New password and confirm password do not match',
+      );
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedNewPassword,
+        resetPasswordToken: null,
+        resetPasswordTokenExpiry: null,
+      },
+    });
+
+    return { message: 'Password reset successful!' };
   }
 }
