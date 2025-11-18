@@ -472,11 +472,11 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## 📝 License
 
-This project is [UNLICENSED](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
 
 ## 👨‍💻 Author
 
-**Martin Paralyuzov**
+**Miroslav Paralyuzov**
 - GitHub: [@paralyuzov](https://github.com/paralyuzov)
 
 ## 🙏 Acknowledgments
