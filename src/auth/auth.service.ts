@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -359,7 +358,11 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('User with this email does not exist');
+      // Return success even if user doesn't exist (security best practice)
+      return {
+        message:
+          'If an account with that email exists, a password reset link has been sent.',
+      };
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
@@ -380,6 +383,7 @@ export class AuthService {
         resetToken,
       );
     } catch (error: unknown) {
+      console.error('Error sending reset password email:', error);
       await this.prisma.user.update({
         where: { id: user.id },
         data: {
@@ -387,16 +391,6 @@ export class AuthService {
           resetPasswordTokenExpiry: null,
         },
       });
-
-      if (error instanceof Error) {
-        throw new InternalServerErrorException(
-          'Error sending reset password email: ' + error.message,
-        );
-      }
-
-      throw new InternalServerErrorException(
-        'Failed to send reset password email',
-      );
     }
 
     return { message: 'Password reset link sent to your email' };
